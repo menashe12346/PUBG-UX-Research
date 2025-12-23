@@ -1,6 +1,7 @@
 adb/sessions_screencap_pc_roi
 debug_out
 save.txt
+get_phone_ip.txt
 
 # להתעלם מהכול בתוך sessions_screencap_pc_roi
 adb/sessions_screencap_pc_roi/*

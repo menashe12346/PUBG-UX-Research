@@ -5,7 +5,6 @@ import shutil
 from typing import Dict, Tuple, Optional, List
 
 DIGITS_DIR = r"/home/menashe/image_proses/digits_font"        # התיקייה עם 0.png ... 9.png
-#IMAGES_DIR = r"/home/menashe/image_proses/PUBG_Images" 
 IMAGES_DIR = r"/home/menashe/image_proses/adb/sessions_screencap_pc_roi/run_20251221_200610" 
 DIGIT_SIZE = (40, 64)  # (width, height) – גודל אחיד לכל הספרות
 
