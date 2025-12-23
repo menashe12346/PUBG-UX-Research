@@ -3,19 +3,35 @@ import numpy as np
 from pathlib import Path
 import shutil
 from typing import Dict, Tuple, Optional, List
+import os
+import stat
+import time
+import shutil
+from pathlib import Path
 
-DIGITS_DIR = r"/home/menashe/image_proses/digits_font"        # התיקייה עם 0.png ... 9.png
-IMAGES_DIR = r"/home/menashe/image_proses/adb/sessions_screencap_pc_roi/run_20251221_200610" 
+def _rmtree_onerror(func, path, exc_info):
+    # make file writable then retry
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except Exception:
+        pass
+
+IMAGES_DIR = Path(r"adb/sessions_screencap_pc_roi/run_20251221_200610").resolve()
+DIGITS_DIR = Path(r"digits_font").resolve()
 DIGIT_SIZE = (40, 64)  # (width, height) – גודל אחיד לכל הספרות
+DEBUG_DIR = Path("debug_out")
 
-DEBUG_DIR = Path("/home/menashe/image_proses/debug_out")
-
-# מחיקה מלאה של התיקייה אם קיימת
 if DEBUG_DIR.exists():
-    shutil.rmtree(DEBUG_DIR)
+    try:
+        shutil.rmtree(DEBUG_DIR, onerror=_rmtree_onerror)
+    except PermissionError:
+        # fallback: rename instead of delete (avoids WinError 5)
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        DEBUG_DIR.rename(Path(f"debug_out__old__{ts}"))
 
-# יצירה מחדש
 DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def dbg_write(filename: str, img) -> str:
     out_path = DEBUG_DIR / filename
@@ -425,60 +441,47 @@ def iter_image_files(folder: str):
     files = [f for f in p.iterdir() if f.is_file() and f.suffix.lower() in exts]
     files.sort(key=lambda x: x.name.lower())
     return files
+import os
+from pathlib import Path
+
 def run_on_folder(images_dir: str, templates):
     files = iter_image_files(images_dir)
     if not files:
         return
 
-    results = []  # (path, number_or_none)
+    p = Path(images_dir)
 
-    for path in files:
+    # 1) compute predictions in the ORIGINAL folder order
+    preds = []  # list of (path, pred_str, idx)
+    for idx, path in enumerate(files, start=1):
+        pred_str = "undefined"
         try:
             crop = get_ping_region(str(path))
             number, digits = test_recognize_number_from_screenshot(crop, templates)
-
-            if number is None:
-                results.append((path, None))
-            else:
-                results.append((path, int(number)))
-
+            if number is not None:
+                pred_str = str(int(number))
         except Exception:
-            results.append((path, None))
+            pred_str = "undefined"
 
-    # ---- sort files by recognized number ----
-    # numbers first (ascending), undefined at the end
-    def sort_key(item):
-        path, num = item
-        if num is None:
-            return (1, 0, path.name.lower())  # undefined last
-        return (0, num, path.name.lower())
+        preds.append((path, pred_str, idx))
 
-    results_sorted = sorted(results, key=sort_key)
+    # 2) print one line (optional)
+    print(",".join([pred for (_, pred, _) in preds]))
 
-    # ---- print ONE LINE, comma-separated, SORTED ----
-    out_values_sorted = [
-        ("undefined" if num is None else str(num))
-        for (_, num) in results_sorted
-    ]
-    print(",".join(out_values_sorted))
+    # 3) rename safely: move each file to a unique temp name first (same folder)
+    temp_items = []
+    for k, (path, pred, idx) in enumerate(preds, start=1):
+        if not path.exists():
+            continue
+        tmp = p / f"__tmp__{k:06d}{path.suffix.lower()}"
+        os.replace(str(path), str(tmp))
+        temp_items.append((tmp, pred, idx, path.suffix.lower()))
 
-    # ---- rename with numeric prefix so folder listing becomes sorted ----
-    p = Path(images_dir)
+    # 4) final rename to the requested format
+    for tmp_path, pred, idx, suffix in temp_items:
+        new_name = f"screenshot_{pred}_{idx:06d}{suffix}"
+        os.replace(str(tmp_path), str(p / new_name))
 
-    # two-pass rename to avoid collisions
-    temp_paths = []
-    for i, (path, num) in enumerate(results_sorted, start=1):
-        tmp = p / (f"__tmp__{i:06d}__{path.name}")
-        path.rename(tmp)
-        temp_paths.append((tmp, path.name, num))
-
-    # final rename
-    for idx, (tmp_path, original_name, num) in enumerate(temp_paths, start=1):
-        if num is None:
-            new_name = f"999999_undefined_{idx:06d}_{original_name}"
-        else:
-            new_name = f"{num:06d}_{idx:06d}_{original_name}"
-        tmp_path.rename(p / new_name)
 
 # ---- main ----
 templates = load_digit_templates(DIGITS_DIR)
