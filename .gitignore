@@ -1,4 +1,17 @@
 adb/sessions_screencap_pc_roi
 debug_out
-internal_session_20250930_1434
 save.txt
+
+# להתעלם מהכול בתוך sessions_screencap_pc_roi
+adb/sessions_screencap_pc_roi/*
+
+# לפתוח את התיקייה עצמה
+!adb/sessions_screencap_pc_roi/
+
+# לפתוח את internal_session (חובה כדי להגיע פנימה)
+!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/
+!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/*
+
+# לפתוח רק את ה-run הספציפי
+!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/run_20251221_200610/
+!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/run_20251221_200610/**

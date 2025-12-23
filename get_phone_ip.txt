@@ -1,0 +1,2 @@
+ip a
+ip route
