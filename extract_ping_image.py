@@ -14,4 +14,4 @@ def save_ping_region(image_path: str, output_path: str = "test.png"):
 
 
 if __name__ == "__main__":
-    save_ping_region("PUBG_Images/999999_undefined_000005_image.png")
+    save_ping_region("test/test.png")
