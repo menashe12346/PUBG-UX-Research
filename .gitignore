@@ -1,8 +1,6 @@
 adb/sessions_screencap_pc_roi
 debug_out
 save.txt
-get_phone_ip.txt
-internal_session_20250930_1434
 
 # ignore everything in the folder
 adb/sessions_screencap_pc_roi/**
