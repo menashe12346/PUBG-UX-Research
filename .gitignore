@@ -2,17 +2,14 @@ adb/sessions_screencap_pc_roi
 debug_out
 save.txt
 get_phone_ip.txt
+internal_session_20250930_1434
 
-# להתעלם מהכול בתוך sessions_screencap_pc_roi
-adb/sessions_screencap_pc_roi/*
+# ignore everything in the folder
+adb/sessions_screencap_pc_roi/**
 
-# לפתוח את התיקייה עצמה
+# allow the folder itself (so git can traverse into it)
 !adb/sessions_screencap_pc_roi/
 
-# לפתוח את internal_session (חובה כדי להגיע פנימה)
-!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/
-!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/*
-
-# לפתוח רק את ה-run הספציפי
-!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/run_20251221_200610/
-!adb/sessions_screencap_pc_roi/internal_session_20250930_1434/run_20251221_200610/**
+# allow this specific run folder and its contents
+!adb/sessions_screencap_pc_roi/run_20251221_200610/
+!adb/sessions_screencap_pc_roi/run_20251221_200610/**
