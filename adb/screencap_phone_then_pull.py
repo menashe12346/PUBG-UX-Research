@@ -7,6 +7,7 @@ import struct
 import shutil
 import cv2
 import numpy as np
+import argparse
 
 # ====== SETTINGS ======
 DISPLAY_ID = ""   # INTERNAL display id
@@ -169,22 +170,32 @@ def capture_screencap_raw_via_execout(serial: str, display_id: str, retries: int
 
 # -------------------- main --------------------
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out_dir", default=None, help="Output directory for this run")
+    args = parser.parse_args()
+
     if shutil.which(str(ADB)) is None:
         raise SystemExit(f"adb not found in PATH: {ADB}. Try: which adb")
 
 
     serial = wait_for_device_ready()
 
-    run_id = datetime.now().strftime("run_%Y%m%d_%H%M%S")
-    local_root = HERE / LOCAL_BASE
-    local_dir  = local_root / run_id
+    if args.out_dir:
+        local_dir = Path(args.out_dir)
+    else:
+        run_id = datetime.now().strftime("run_%Y%m%d_%H%M%S")
+        local_root = HERE / LOCAL_BASE
+        local_dir  = local_root / run_id
+
     local_dir.mkdir(parents=True, exist_ok=True)
 
+
     log_path = local_dir / "log.csv"
-    log_path.write_text("i,ts,filename,status\n", encoding="utf-8")
+    log_path.write_text("i,ts,filename,status,elapsed_sec\n", encoding="utf-8")
 
     print("[+] Local :", local_dir)
     print("[+] Mode  : adb exec-out screencap (RAW) -> PC -> crop ROI -> save PNG")
+    start_time = time.time()
     print("Press Ctrl+C to stop.\n")
 
     stopping = False
@@ -225,14 +236,16 @@ def main():
             status = f"fail:{type(e).__name__}"
             print(f"[!] capture failed i={i}: {e}")
 
+        elapsed = time.time() - start_time
+
         with open(log_path, "a", encoding="utf-8") as f:
-            f.write(f"{i},{ts},{fname},{status}\n")
+            f.write(f"{i},{ts},{fname},{status},{elapsed:.2f}\n")
 
         next_t += INTERVAL_SEC
 
         if time.time() - last_print >= PROGRESS_EVERY_SEC:
             cnt = len(list(local_dir.glob("*.png")))
-            print(f"[progress] saved={cnt} last={last_fname}")
+            print(f"saved={cnt}")
             last_print = time.time()
 
     print("[+] Done.")

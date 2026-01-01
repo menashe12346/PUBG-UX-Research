@@ -1,13 +1,15 @@
 adb/sessions_screencap_pc_roi
 debug_out
 save.txt
+save.py
+test
 
 # ignore everything in the folder
-adb/sessions_screencap_pc_roi/**
+captures/**
 
 # allow the folder itself (so git can traverse into it)
-!adb/sessions_screencap_pc_roi/
+!captures/
 
 # allow this specific run folder and its contents
-!adb/sessions_screencap_pc_roi/run_20251221_200610/
-!adb/sessions_screencap_pc_roi/run_20251221_200610/**
+!captures/2026-01-01__19-25-33/
+!captures/2026-01-01__19-25-33/**

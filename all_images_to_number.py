@@ -8,6 +8,45 @@ import stat
 import time
 import shutil
 from pathlib import Path
+import traceback
+def bridge_digit_gaps_gentle(bw: np.ndarray) -> np.ndarray:
+    """
+    Gentle bridging:
+    - assumes black digits (0) on white background (255)
+    - connects very small gaps inside a digit
+    """
+    if bw is None or bw.size == 0:
+        return bw
+
+    # foreground mask (digits)
+    fg = (bw < 128).astype(np.uint8) * 255
+
+    # VERY gentle horizontal dilation
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    fg = cv2.dilate(fg, kernel, iterations=1)
+
+    # apply back to bw (keep background intact)
+    out = bw.copy()
+    out[fg > 0] = 0
+
+    return out
+
+def strengthen_black_digits(bw: np.ndarray, iters: int = 1) -> np.ndarray:
+    """
+    Makes black digits slightly thicker without merging digits too much.
+    bw: black digits (0) on white background (255)
+    """
+    if bw is None or bw.size == 0:
+        return bw
+
+    fg = (bw < 128).astype(np.uint8) * 255  # digits mask (white)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    fg = cv2.dilate(fg, kernel, iterations=iters)
+
+    out = bw.copy()
+    out[fg > 0] = 0
+    return out
+
 
 def _rmtree_onerror(func, path, exc_info):
     # make file writable then retry
@@ -17,7 +56,8 @@ def _rmtree_onerror(func, path, exc_info):
     except Exception:
         pass
 
-IMAGES_DIR = Path(r"adb/sessions_screencap_pc_roi/run_20251221_200610").resolve()
+#IMAGES_DIR = Path(r"adb/sessions_screencap_pc_roi/run_20251223_232059").resolve()
+IMAGES_DIR = Path(r"test").resolve()
 DIGITS_DIR = Path(r"digits_font").resolve()
 DIGIT_SIZE = (40, 64)  # (width, height) – גודל אחיד לכל הספרות
 DEBUG_DIR = Path("debug_out")
@@ -408,11 +448,20 @@ def test_recognize_number_from_screenshot(
 
     crop_big = crop_big[:, :int(0.70 * crop_big.shape[1])]
 
+
+
     bw = make_white_digit_mask(crop_big)
 
     bw = crop_to_foreground(bw, pad=12)
 
     dbg_write("dbg_bw_white.png", bw)
+
+    bw = bridge_digit_gaps_gentle(bw)
+    dbg_write("dbg_bw_bridged.png", bw)
+
+    bw = strengthen_black_digits(bw, iters=3)
+    dbg_write("dbg_bw_strengthened.png", bw)
+
 
     number, digits = test_recognize_number_from_bw_mask(
         bw,
@@ -428,7 +477,7 @@ def get_ping_region(image_path: str):
     if img is None:
         raise FileNotFoundError(image_path)
 
-    X1, Y1 = 200, 1040
+    X1, Y1 = 210, 1040
     X2, Y2 = 266, 1080
 
     crop = img[Y1:Y2, X1:X2]
@@ -460,7 +509,9 @@ def run_on_folder(images_dir: str, templates):
             number, digits = test_recognize_number_from_screenshot(crop, templates)
             if number is not None:
                 pred_str = str(int(number))
-        except Exception:
+        except Exception as e:
+            print("ERROR on", path.name, ":", repr(e))
+            traceback.print_exc()   # <<< זה יראה לך בדיוק איפה זה נפל
             pred_str = "undefined"
 
         preds.append((path, pred_str, idx))
