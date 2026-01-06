@@ -11,5 +11,5 @@ captures/**
 !captures/
 
 # allow this specific run folder and its contents
-!captures/2026-01-01__19-25-33/
-!captures/2026-01-01__19-25-33/**
+#!captures/2026-01-01__19-25-33/
+#!captures/2026-01-01__19-25-33/**
