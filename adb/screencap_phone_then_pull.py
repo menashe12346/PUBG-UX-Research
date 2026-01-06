@@ -167,6 +167,22 @@ def capture_screencap_raw_via_execout(serial: str, display_id: str, retries: int
 
     raise RuntimeError(f"capture failed after {retries} retries: {last_err}")
 
+def crop_region_bgr(img: np.ndarray, x1: int, y1: int, x2: int, y2: int) -> np.ndarray:
+    if img is None or img.size == 0:
+        raise ValueError("Empty image")
+
+    h, w = img.shape[:2]
+
+    # clamp כדי לא לצאת מגבולות
+    x1c = max(0, min(w, x1))
+    x2c = max(0, min(w, x2))
+    y1c = max(0, min(h, y1))
+    y2c = max(0, min(h, y2))
+
+    if x2c <= x1c or y2c <= y1c:
+        raise ValueError(f"Invalid crop box after clamp: ({x1c},{y1c})-({x2c},{y2c}) for image {w}x{h}")
+
+    return img[y1c:y2c, x1c:x2c].copy()
 
 # -------------------- main --------------------
 def main():
@@ -229,8 +245,8 @@ def main():
         status = "ok"
         try:
             frame_bgr = capture_screencap_raw_via_execout(serial, DISPLAY_ID, retries=3)
-            save_png_unicode_safe(out_path, frame_bgr)
-
+            crop = crop_region_bgr(frame_bgr, x1=200, y1=1040, x2=266, y2=1080)
+            save_png_unicode_safe(out_path, crop)
 
         except Exception as e:
             status = f"fail:{type(e).__name__}"

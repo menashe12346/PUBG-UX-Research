@@ -3,7 +3,7 @@ debug_out
 save.txt
 save.py
 test
-
+captures_old
 # ignore everything in the folder
 captures/**
 
