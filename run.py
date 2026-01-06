@@ -106,6 +106,9 @@ def spawn_powershell_ps1(ps1_path: Path, out_dir: Path) -> subprocess.Popen:
 
 
 def main():
+    # Ensure captures base folder exists
+    BASE_OUT.mkdir(parents=True, exist_ok=True)
+    
     if not PY_SCRIPT.exists():
         raise SystemExit(f"Python script not found: {PY_SCRIPT}")
     if not PS1_SCRIPT.exists():
