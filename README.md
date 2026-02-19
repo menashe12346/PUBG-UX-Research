@@ -127,6 +127,9 @@ For each PCAP file:
 3. For each sub-IP:
    - Run `whois`
    - Verify whether the prefix belongs to **Tencent**
+   ```bash
+   split_by_tencent.py
+   ```
 
 Since PUBG servers are operated by Tencent, any IP range owned by Tencent was considered a PUBG server candidate.
 
@@ -264,7 +267,7 @@ For each segment, it computes:
 - Internal missing density (percentage of missing inside the segment)
 - Share of total missing that originated from that segment
 
-It helped determine that missing classifications cluster most frequently at the beginning, which is expected, since it typically takes around thirty seconds on average for a game to start, and during that period there is no ping activity.
+It helped determine for the first 100 recordingsx that missing classifications cluster most frequently at the beginning, which is expected, since it typically takes around thirty seconds on average for a game to start, and during that period there is no ping activity.
 
 ---
 
