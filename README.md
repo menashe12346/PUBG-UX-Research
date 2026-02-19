@@ -37,14 +37,6 @@ To record only ping screenshots:
 ```bash
 python adb/screencap_phone_then_pull.py
 ```
-
-This script:
-- Captures screenshots directly from the phone
-- Pulls them to the computer
-- Saves them locally for later ping extraction
-
-Use this mode when you only need visual ping data.
-
 ---
 
 ## 2. Recording Network Traffic (PCAP Capture)
@@ -56,8 +48,6 @@ To capture PUBG network traffic:
 - Open a **mobile hotspot from your computer**
 - Connect your phone to this hotspot
 - Make sure PUBG traffic flows through the computer
-
-This ensures the computer can capture the phone’s network packets.
 
 ---
 
@@ -92,7 +82,7 @@ Before running, update the relevant arguments inside:
 record_pcap.ps1
 ```
 
-## Creating Metadata (Ping Image Processing)
+# Creating Metadata (Ping Image Processing)
 
 To generate metadata from the recorded ping screenshots, run:
 
@@ -166,11 +156,6 @@ audit_aggregate_all_runs_{int(time())}.csv
 
 This file aggregates results across **all PCAP runs**.
 
-It provides:
-- Overall detection rates
-- Combined statistics
-- Cross-run performance consistency
-
 ---
 
 ## Missing Stream Analysis
@@ -196,24 +181,9 @@ For each segment, it computes:
 - Internal missing density (percentage of missing inside the segment)
 - Share of total missing that originated from that segment
 
+It helped determine that missing classifications cluster most frequently at the beginning, which is expected, since it typically takes around thirty seconds on average for a game to start, and during that period there is no ping activity.
+
 ---
-
-## Final Output Statistics
-
-At the end, the script reports:
-
-- Per-file missing distribution
-- Overall averages across all runs
-- Simple mean between files
-- Weighted averages:
-  - Weighted by total number of rows
-  - Weighted by number of missing samples
-
-This analysis helps determine:
-
-- Whether missing classifications cluster at the beginning, middle, or end of sessions
-- Whether detection quality is stable across runs
-- Whether stream identification logic requires refinement
 
 ## Data Exploration
 
