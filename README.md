@@ -101,6 +101,89 @@ debug_all_pings/
 
 The `debug_all_pings` directory is useful for verifying detection quality and troubleshooting cases where digits were misread.
 
+## Feature Extraction
+
+Unlike most mobile FPS games analyzed in this research, **PUBG Mobile runs multiple parallel network streams simultaneously**.  
+Therefore, identifying the correct streams before extracting features was a critical step.
+
+The goal was to **precisely identify all PUBG-related streams** and extract features only from them.
+
+---
+
+### Step 1 — Identify PUBG Server IPs
+
+For each PCAP file:
+
+1. Extract all participating IPs  
+   ```bash
+   python get_ip_participation_summary.py
+   ```
+
+2. Generate organized sub-IP prefixes  
+   ```bash
+   python make_subips.py
+   ```
+
+3. For each sub-IP:
+   - Run `whois`
+   - Verify whether the prefix belongs to **Tencent**
+
+Since PUBG servers are operated by Tencent, any IP range owned by Tencent was considered a PUBG server candidate.
+
+The final list of Tencent-related IPs is stored under:
+
+```text
+out/tencent/
+```
+
+---
+
+### Step 2 — Discover High-Frequency Ports
+
+In parallel, identify which ports are most actively used across all PCAP files:
+
+```bash
+python Port_Discovery.py
+```
+
+Additionally:
+- Cross-reference with official PUBG documentation and online sources
+- Filter streams based on the discovered high-frequency ports
+
+This produced a **second filtered stream list**.
+
+---
+
+### Step 3 — Merge and Clean Stream Lists
+
+- Combine the Tencent-based stream list
+- Combine the port-based stream list
+- Remove duplicates
+- Generate a final authoritative PUBG stream list
+
+At this point, we have the **final list of PUBG streams**.
+
+---
+
+## Extracting Features from Final Stream List
+
+Once the final stream list is ready, run:
+
+```bash
+python new___analyze.py
+```
+
+This script:
+- Filters traffic based on the identified PUBG streams
+- Performs aggregation and feature extraction
+- Outputs a final `.csv` file inside:
+
+```text
+band/
+```
+
+This CSV file contains the extracted features used for further modeling and analysis.
+
 ## Drawing Conclusions from Feature Extraction (Audit & Validation)
 
 After generating the final feature CSV file, an `audit/` directory is automatically created.  
